@@ -1,0 +1,55 @@
+INFO2120 Assignment 1 Discussion
+
+One of the major problems we had was confusion over what the design brief was specifying. We solved this by outlining a series of assumptions, from which we modelled the system. Those assignments are included at the end of this document.
+
+In physical waypoints, we were uncertain if verification codes were needed, as well as GPS locations, to confirm a waypoint completion. We decided that verification codes would be the primary key for every waypoint. Although GPS location data will still be used as an additional method for validating.
+
+The score sheet entity was created to store information about a team while they are completing a Treasure Hunt. Therefore it is a weak entity identified by the Team - Treasure Hunt relationship. We did this to avoid having many attributes on the relationship itself. 
+
+BRANCHING AND CHALLENGE WAYPOINTS
+
+To extend our Treasure Hunt model, we have included two new kinds of waypoints: Branching waypoints and Challenge waypoints. When a team encounters a Branching waypoint they have a choice: continue along the normal path (pointed to by the “Next waypoint” variable) or attempt a Challenge waypoint. These different paths through the Treasure Hunt will eventually join again and all teams  finish on the same ending waypoint.
+
+A Challenge waypoint is a normal waypoint with a task or puzzle that must be completed before a team can get its verification code and continue to the next waypoint in sequence. 
+
+A challenge waypoint is therefore generally harder to complete but awards more points and could aid in providing a shortcut for team to reach the end of the Treasure Hunt.
+
+Challenges can be rated in difficulty, with higher difficulties awarding more points and increasing the overall difficulty of the Treasure Hunt.
+
+Challenge waypoints are relatively harder to obtain compared to regular ones. Because of this, Badges are awarded to the first team that is able to complete each challenge. To confirm badge completion, we used the boolean attribute IsCompleted to flag when the first team achieves this challenge. 
+
+Originally, we used a waypoint counting model to track different paths of the same treasure hunt, with each normal waypoint increasing the count by one and Challenges increasing them by more, thereby providing the shortcut. We changed this to make it less complicated to model and create treasure hunts. Each waypoint now stores the next waypoint in sequence, with Branching waypoints in an additional relationship with the Challenge waypoint it points to.
+
+ASSUMPTIONS
+
+[*] Waypoints can exist outside of Treasure Hunts, allowing them to be reused in different hunts.
+
+[*] Treasure Hunts must contain at least two waypoints at any time - the beginning and the end.
+
+[*] Game designers are able to change the waypoint sequence after initially setting waypoints when creating new Treasure Hunts.
+
+[*] Treasure hunts can have zero to many teams. Zero teams would occur before the Treasure Hunt is opened to registrations.
+
+[*] A team can only be in one Treasure Hunt. Teams are created for specific Treasure Hunts.
+
+[*] A player can be in more than one team, but not more than one team at a given time.
+
+[*] Waypoint verification can be by GPS position or verification code. GPS position is needed for physical waypoints.
+
+[*] Each waypoint stores the next waypoint in sequence in the current Treasure Hunt.
+
+[*] Players achieve Badges, not teams. If a team achieves a badge, every player who is in that team receives the badge.
+
+[*] Points are awarded for each waypoint reached, and a cumulative score is kept on each team’s score card. Extra points are awarded for any team that completes challenges.
+
+[*] Each member of the first team to complete a challenge gets a badge.
+
+[*] A player’s score modifies their rank which enables them to enter into more difficult Treasure Hunts, or against more highly ranked players.
+
+[*] At the end of a Treasure Hunt, the player’s score is increased by the amount of points that the team earned in total. The player’s score is thus a cumulative total of all the scores they have earned since they joined.
+
+[*] Reviews are defined by the authoring player and the Treasure Hunt. The player can also like and rate other players’ reviews.
+
+[*] Challenges are unique in a Treasure Hunt but not in the system 
+
+If a team fails a challenge, they are directed back to the last branching waypoint to continue along the other branch of the Treasure Hunt.

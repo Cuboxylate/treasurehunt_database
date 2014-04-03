@@ -1,0 +1,112 @@
+/* 
+    Document   : main.css
+    Created on : 15/02/2013, 2:38:36 PM
+    Author     : Bryn
+    Description:
+        All Treasure Hunt styles go here for now. May split for desktop/mobile later
+*/
+
+/* Sticky footer */
+* {
+    margin: 0;
+}
+html, body {
+    height: 100%;
+    background-color: #555;
+}
+h1 {
+    background: SteelBlue; /* SteelBlue is rgb(70,130,180) */
+    background: rgba(70,130,180 , 0.8);
+    font-family: Arial, sans-serif;
+    margin: 1em 0 0.5em 0;
+    border: 1px solid #fff;
+    padding: 5px 15px;
+    color: white;
+    border-radius: 0 10px 0 10px;
+}
+h2 {
+    color: SteelBlue;
+    border-bottom: 1px solid rgba(70,130,180 , 0.3);
+    font-family: Arial, sans-serif;
+    margin: 1em 0 0.5em 0;
+    text-transform: uppercase;
+}
+/* Tables should scroll */
+table {width:100%; border:1px solid #000000;}
+thead {background-color:SteelBlue;color:#FFFFFF;text-align:center; position:relative; top:0px;}
+thead th { height:50px; width:120px; text-align:center;border-width: 1px;border-style: outset;}
+tbody {color:#000000;text-align:center; height:150px; overflow: scroll; margin:0px;}
+tbody td { height:60px; width:100px;border-width: 1px;border-style: outset;}
+tfoot {background-color:SteelBlue; color:#FFFFFF;text-align:center; position:fixed; bottom:0px;}
+tfoot td { height:50px; width:120px; text-align:center;border-width: 1px;border-style: outset;}
+
+#wrapper {
+    width: 100%;
+    max-width: 750px;
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto -142px; /* the bottom margin is the negative value of the footer's height */
+    background-color: #fff;
+}
+#footer #push {
+    height: 142px; /* .push must be the same height as .footer */
+}
+
+/* centred login box */
+#login {
+    margin: 0 auto;
+}
+#message {
+    color: red;
+}
+
+/* Navigation Bar */
+#nav {
+    position: fixed;
+    top: 0px;
+    width: 100%;
+    max-width: 750px;
+    float: left;
+    margin: 0 0 3em 0;
+    padding: 0;
+    list-style: none;
+    background-color: #eee;
+    border-bottom: 1px solid #ccc; 
+    border-top: 1px solid #ccc;
+    display: block;
+}
+#nav li {
+    float: left; 
+    display: block;
+}
+#nav li a {
+    display: block;
+    padding: 8px 15px;
+    text-decoration: none;
+    font-weight: bold;
+    color: SteelBlue;
+    border-right: 1px solid #ccc; }
+#nav li a:hover {
+    color: #c00;
+    background-color: #fff; }
+
+/* StackOverflow-style badges */
+.badge {
+    display: inline-block;
+    color: #333;
+    font-size: 12px;
+    font-family: Arial, sans-serif;
+    border: 2px solid #333;
+    background-color: #eee;
+    padding: 2px 8px 4px;
+    margin: 3px 3px 0 0;
+    
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+}
+.badge:hover {
+    background-color: #555;
+    color: #fff;
+}

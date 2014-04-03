@@ -1,0 +1,327 @@
+<?php
+/**
+ * Database functions. You need to modify each of these to interact with the database and return appropriate results. 
+ */
+
+/**
+ * Connect to database
+ * This function does not need to be edited - just update config.ini with your own 
+ * database connection details. 
+ * @param string $file Location of configuration data
+ * @return PDO database object
+ * @throws exception
+ */
+function connect($file = 'config.ini') {
+	// read database seetings from config file
+    if ( !$settings = parse_ini_file($file, TRUE) ) 
+        throw new exception('Unable to open ' . $file);
+    
+    // parse contents of config.ini
+    $dns = $settings['database']['driver'] . ':' .
+            'host=' . $settings['database']['host'] .
+            ((!empty($settings['database']['port'])) ? (';port=' . $settings['database']['port']) : '') .
+            ';dbname=' . $settings['database']['schema'];
+    $user= $settings['db_user']['username'];
+    $pw  = $settings['db_user']['password'];
+
+	// create new database connection
+    try {
+        $dbh=new PDO($dns, $user, $pw);
+        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        print "Error Connecting to Database: " . $e->getMessage() . "<br/>";
+        die();
+    }
+    return $dbh;
+}
+
+/**
+ * Check login details
+ * @param string $name Login name
+ * @param string $pass Password
+ * @return boolean True is login details are correct
+ */
+function checkLogin($name,$pass) {
+    // STUDENT TODO:
+    // Replace line below with code to validate details from the database
+    //
+
+    $db = connect();
+    try {
+        $db->beginTransaction();
+        $stmt = $db->prepare('SELECT COUNT(*) FROM TreasureHunt.Player 
+            WHERE name=:name AND password=:password');
+        $stmt->bindValue(':name', $name);
+        $stmt->bindValue(':password', $pass);
+        $stmt->execute();
+        $result = $stmt->fetchColumn();
+        $stmt->closeCursor();
+        $db->commit();      
+    } catch (PDOException $e) { 
+        $db->rollBack();
+        print "Error checking login: " . $e->getMessage(); 
+        return FALSE;
+    }
+    return ($result==1);
+
+
+
+
+    //return ($name=='testuser' && $pass=='testpass');
+}
+
+/**
+ * Get details of the current user
+ * @param string $user login name user
+ * @return array Details of user - see index.php
+ */
+function getUserDetails($user) {
+
+    $db = connect();
+    try {
+        $db->beginTransaction();
+        /* Retrieve player info */
+        $stmt = $db->prepare('SELECT p.name, p.addr, m.team
+            FROM treasurehunt.player p LEFT OUTER JOIN  treasurehunt.memberof m  ON p.name=m.player
+            WHERE p.name = :name');
+        $stmt->bindValue(':name', $user);
+        $stmt->execute();
+        $result = $stmt->fetch();
+        $stmt->closeCursor();
+
+        /* Retieve player statistics as array */
+        $stmt2 = $db->prepare('SELECT stat_name, stat_value
+                    FROM TreasureHunt.PlayerStats
+                    WHERE player=:name2');
+        $stmt2->bindValue(':name2', $user);
+        $stmt2->execute();
+        $stats = $stmt2->fetchAll();
+
+        /*Retrieve player badges as array */
+        $stmt3 = $db->prepare('SELECT b.name, b.description
+                FROM treasurehunt.badge b JOIN treasurehunt.achievements a ON b.name=a.badge
+                WHERE a.player=:name3');
+        $stmt3->bindValue(':name3', $user);
+        $stmt3->execute();
+        $badges = $stmt3->fetchAll();
+        $db->commit();      
+    } catch (PDOException $e) { 
+        $db->rollBack();
+	//TODO stop them printing error info?
+        print "Error retrieving player information: " . $e->getMessage(); 
+        return FALSE;
+    }
+
+    $results = array();
+    $results['name'] = $result['name'];
+    $results['address'] = $result['addr'];
+    $results['team'] = $result['team'];
+    $results['stats'] = $stats;
+    $results['badges'] = $badges;
+    
+    return $results;
+}
+
+/**
+ * List hunts that are currently available
+ * @return array Various details of for available hunts - see hunts.php
+ * @throws Exception 
+ */
+function getAvailableHunts() {
+    // STUDENT TODO:
+    // Replace lines below with code to get list of available hunts from the database
+    // Example hunt info - this should come from a query
+    $results = array(
+        array('id'=>1234,'name'=>'Harbour Havoc','start'=>'9am 10/2/13','distance'=>'10 km','nwaypoints'=>5),
+        array('id'=>4563,'name'=>'Lost in Lane Cove','start'=>'5pm 1/3/13','distance'=>'2 km','nwaypoints'=>8),
+        array('id'=>7789,'name'=>'Paramatta River Trail','start'=>'9am 4/3/13','distance'=>'8 km','nwaypoints'=>5)
+    );
+    
+    return $results;
+}
+
+/**
+ * Get details for a specific hunt
+ * @param integer $hunt ID of hunt
+ * @return array Various details of current hunt - see huntdetails.php
+ * @throws Exception 
+ */
+function getHuntDetails($hunt) {
+    
+    // STUDENT TODO:
+    // Replace lines below with code to get details of a hunt from the database
+    
+    // Example hunt details - this should come from a query
+    $results = array(
+        'name'=>'Harbour Havoc',
+        'desc'=>'A swashbuckling adventure around the harbour, with lots of stunning views along the way. But don\'t stare too long else someone else will get your treasure!',
+        'nteams'=>7,
+        'distance'=>'5.5 km',
+        'start'=>'9am 10/2/13',
+        'n_wp'=>5,  
+    );
+    
+    return $results;
+}
+
+/**
+ * Show status of user in their current hunt
+ * @param string $user
+ * @return array Various details of current hunt - see current.php
+ * @throws Exception 
+ */
+function getHuntStatus($user) {
+    // STUDENT TODO:
+    // Replace lines below with code to obtain details from the database
+
+    $db = connect();
+    try {
+        $db->beginTransaction();
+        $stmt = $db->prepare("SELECT h.title, p.team, h.startTime, (CURRENT_TIMESTAMP - h.starttime) 
+                AS elapsed, p.score, (p.currentWP - 1) AS waypoint_count, 
+		(SELECT w.clue FROM treasurehunt.waypoint w WHERE w.num=p.currentWP AND w.hunt=h.id) as clue
+            FROM (treasurehunt.hunt h JOIN treasurehunt.participates p ON h.id = p.hunt)
+            JOIN treasurehunt.memberof m  ON p.team=m.team
+            WHERE h.status='active' AND m.player =:name");
+        $stmt->bindValue(':name', $user);
+        $stmt->execute();
+        $active = $stmt->fetch();
+        $stmt->closeCursor();
+        $stmt2 = $db->prepare("SELECT h.title, p.team, h.startTime, (CURRENT_TIMESTAMP - h.starttime) 
+                AS elapsed, p.score, p.rank
+            FROM (treasurehunt.hunt h JOIN treasurehunt.participates p ON h.id = p.hunt)
+            JOIN treasurehunt.memberof m  ON p.team=m.team
+            WHERE h.status='finished' AND m.player =:name
+            ORDER BY h.starttime DESC LIMIT 1");
+        $stmt2->bindValue(':name', $user);
+        $stmt2->execute();
+        $finished = $stmt2->fetch();
+        $stmt2->closeCursor();
+        $db->commit();      
+    } catch (PDOException $e) { 
+        $db->rollBack();
+        print "Error retrieving hunt information: " . $e->getMessage(); 
+        return FALSE;
+    }
+
+
+
+    $results = array();
+    $results['active'] = $active;
+    $results['finished'] = $finished;
+    
+    return $results;
+}
+
+/**
+ * Check validation code is for user's next expected waypoint 
+ * @param string $user
+ * @param integer $code Validation code (e.g. from QR)
+ * @return array Various details of current visit - see validate.php
+ * @throws Exception 
+ */
+function validateVisit($user,$code) {
+    // STUDENT TODO:
+    // Replace lines below with code to obtain status from the database
+    // (You could extend this to 
+    
+    $db = connect();
+    try {
+        $db->beginTransaction();
+        $check_code = $db->prepare('SELECT w.verification_code
+            FROM treasurehunt.waypoint w
+            JOIN treasurehunt.participates p ON w.hunt = p.hunt
+            JOIN treasurehunt.team t ON t.name = p.team
+            WHERE p.team = (
+            SELECT team
+            FROM treasurehunt.memberof
+            WHERE player = :name)
+            AND w.num = p.currentWP');
+        $check_code->bindValue(':name', $user);
+        $check_code->execute();
+        $ver_code = $check_code->fetchColumn();
+        $check_code->closeCursor();
+
+        if ($ver_code == $code) {
+		//If the waypoint code is right, check first if it's the last waypoint
+            $get_hunt_wp = $db->prepare("
+		    SELECT h.numwaypoints, (p.currentWP + 1) as current 
+		    FROM (treasurehunt.hunt h JOIN treasurehunt.participates p 
+                    ON h.id=p.hunt) JOIN treasurehunt.memberof m ON m.team=p.team
+                    WHERE h.status='active' AND m.player=:name");
+            $get_hunt_wp->bindValue(':name', $user);
+            $get_hunt_wp->execute();
+            $hunt_wpnum = $get_hunt_wp->fetchAll();
+            $get_hunt_wp->closeCursor();
+
+            if ($hunt_wpnum['numwaypoints'] == $hunt_wpnum['current']) {
+		/* If final waypoint, we need to update stats. First check
+		 * there is a finished hunt stat and retrive the points_score */		
+		$check_fin_hunts = $db->prepare("
+			SELECT stat_name, stat_value 
+			FROM treasurehunt.playerstats
+			WHERE player=:name AND (stat_name='finished_hunts' || stat_name='points_score')
+			ORDER BY stat_name DESC");
+		$check_fin_hunts->bindValue(':name', $user);
+		$check_fin_hunts->execute();
+		$fin_hunts = $get_fin_hunts->fetchAll();
+		$check_fin_hunts->closeCursor();
+		
+		if ($fin_hunts[0]['stat_name'] != 'finished_hunts') {
+			/* If no finished_hunts stat available, make one, and also increase points_score */
+			$make_fin_hunts = db->prepare("
+				INSERT INTO treasurehunt.playerstats
+				VALUES(:name, 'finished_hunts', 1)");
+			$make_fin_hunts->bindValue(':name', $user);
+			$make_fin_hunts->execute();
+		}
+		else {
+			/* If there are finished hunts, increase the value */
+			$incr_fin_hunts = db->prepare("
+				UPDATE treasurehunt.playerstats
+				SET stat_value=:value
+				WHERE player=:name AND stat_name='finished_hunts'");
+			$incr_fin_hunts->bindValue(':name', $user);
+			$incr_fin_hunts->bindValue(':value', ($fin_hunts + 1), PDO::PARAM_INT);
+			$incr_fin_hunts->execute();
+			
+		}
+		
+		
+
+		// If final waypoint, update hunt statistics
+            	// and set STATUS and RESULTS to completed
+
+            }
+	    else {
+  	    // ELSE update team statistics and return next clue
+            // And waypoint status = completed
+
+
+	    }
+
+          
+          
+        }
+	else {
+	//If waypoint code incorrect
+	$result['status'] = 'incorrect';	
+	}
+
+        $stmt->closeCursor();
+        $db->commit();      
+    } catch (PDOException $e) { 
+        $db->rollBack();
+        print "Error handling WP visit: " . $e->getMessage(); 
+        return FALSE;
+    }
+    return $result;
+
+    return array(
+            'status'=>'correct',
+            'rank'=>2,
+            'score'=>6348,
+            'clue'=>'GPS 123.43, 1245.434'
+        );
+}
+?>

@@ -1,0 +1,24 @@
+Hey guys! To get the website working on your own ucpu logins:
+
+1) Move the TreasureHunt folder into ~/lib/html on your ucpu drive
+2) In the TreasureHunt_schema.sql file, near the bottom (before the big
+   GRANT blocks) change the USER key from my unikey to your one
+3) In TreasureHunt/include/config.ini, change the schema name to your
+   unikey as well. DO NOT change the username and password - one of our
+   extensions is to use this dummy user and grant it minimal rights over
+   our schema.
+4) Now to just make sure your database is set up. Go into PGAdmin, into your
+   database, and run the TreasureHunt_schema.sql file in the magnifying glass
+   thingy. 
+5) Also run the TreasureHunt_ExampleData_v1.3.sql to fill your database with
+   data.
+
+You should now have a fully functional site at:
+php.ug.it.usyd.edu.au/~UNIKEY/TreasureHunt
+
+Have a look at it (an example login is still chunk and truffle) and see if
+you see any errors or get any errors showing or anything. Have a look at the
+files too if you want to see them and how they work together. We'll meet up
+again next week to go through it before the final showing at our tutorial.
+
+Thanks for all the work we've done together this semester :) it's been fun!  

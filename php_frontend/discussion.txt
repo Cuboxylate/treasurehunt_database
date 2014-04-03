@@ -1,0 +1,15 @@
+Assumptions:
+
+[*] Each time a correct waypoint is entered, score is increased by 1.
+[*] A player's score statistic is not updated until the completion of a hunt.
+[*] Every player has a score statistic - we don't need to check that it
+    exists before updating it.
+[*] Duration in the participates table is only entered upon completion of a
+    hunt - not progressively with each visited waypoint.
+[*] The full list of hunt details in the Broswe Hunts page is small enough to 
+    be retrieved using PHPs fetchAll() function. If the size of the database
+    grew we could easily change this to loop through fetch() calls.
+[*] Any player can review any hunt, even if they haven't finished it. However,
+    they can only review each hunt once.
+[*] Hunt Status will display both the current hunt and the last completed hunt,
+    whichever of them exists at the time.
