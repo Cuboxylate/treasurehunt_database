@@ -21,6 +21,3 @@ including each of the database interaction functions in the php.
 We also modified the database schema to add all of the internal
 functions and the access modifiers.
 The assignment handout pdf is included for reference.
-
-We completed the assignment as a team, but I took on the role
-of team leader and ended up doing most of the code myself.
